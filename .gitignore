@@ -1,5 +1,0 @@
-/venv/
-/.idea/
-/backend/data/__pycache__
-/backend/data/migrations/__pycache__
-/backend/dragdroptree/__pycache__
