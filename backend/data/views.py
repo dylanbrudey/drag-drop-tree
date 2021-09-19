@@ -1,6 +1,9 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+from rest_framework import viewsets
+from data.models import Store
+from data.serializers import StoreSerializer
 
 
-def index(request):
-    return HttpResponse("Hello, world. You're at the polls index.")
+# ViewSets define the view behavior.
+class StoreViewSet(viewsets.ModelViewSet):
+    queryset = Store.objects.all()
+    serializer_class = StoreSerializer
