@@ -6,111 +6,65 @@ import axios from 'axios';
 
 
 function App() {
-  const [data, setData] = useStateCallback({});
-  const [isUpdated, setIsUpdated] = useState(false);
+  const [data, setData] = useState({})
   const url = 'http://127.0.0.1:8000/stores';
-  const options = {
-    method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json;charset=UTF-8'
-    }
-  };
-  useEffect(() => {
-      // fetch(url, options)
-      // .then(response => {
-      //   // console.log(response.status);
-      //   return response.json()
-      // })
-      // .then(json => {
-      //   // console.log(json);
-      //   setData(sortData(json));
-      // });
-      // async function fetchMyAPI() {
-      //   let response = await fetch(url, options)
-      //   response = await response.json()
-      //   setData(sortData(response))
-      // }
-      // fetchMyAPI()
-      axios.get(url)
-      .then(res => {
-        const newData = res.data;
-        console.log(newData);
-        setData(sortData(newData))
-      })
-  }, []);
 
-  function useStateCallback(initialState) {
-    const [state, setState] = useState(initialState);
-    const cbRef = useRef(null); // init mutable ref container for callbacks
-  
-    const setStateCallback = useCallback((state, cb) => {
-      cbRef.current = cb; // store current, passed callback in ref
-      setState(state);
-    }, []); // keep object reference stable, exactly like `useState`
-  
-    useEffect(() => {
-      // cb.current is `null` on initial render, 
-      // so we only invoke callback on state *updates*
-      console.log("nonono");
-      if (cbRef.current) {
-        console.log("heyyyyoooooo callback mann ");
-        cbRef.current(state);
-        cbRef.current = null; // reset callback after execution
-        setIsUpdated(true);
-      }
-    }, [state]);
-  
-    return [state, setStateCallback];
-  }
+  useEffect(() => {
+      axios.get(url)
+          .then(res => {
+            const newData = res.data;
+            console.log(newData);
+            setData(sortData(newData))
+          });
+  }, []);
 
   const sortData = (initialData) => {
     let data = {
       cities: [],
-      brand: [],
+      brands: [],
       count: [],
       columns: {
-        'col-1': {
-          id: 'col-1',
+        'cities': {
+          id: 'cities',
           title: 'Cities',
-          citiesIds: [],
+          ids: [],
         },
-        'col-2': {
-          id: 'col-2',
+        'brands': {
+          id: 'brands',
           title: 'Brands',
-          brandsIds: [],
+          ids: [],
         },
-        'col-3': {
-          id: 'col-3',
+        'count': {
+          id: 'count',
           title: 'Count',
-          countIds: [],
+          ids: [],
         },
       },
-      columnOrder: ['col-1', 'col-2', 'col-3']
+      columnOrder: ['cities', 'brands', 'count']
 
     };
     initialData.forEach(store => {
       if (!data['cities'].some(city => city.id === store.city.id)) {
         data["cities"].push({
           id: store.city.id,
-          name: store.city.name,
+          content: store.city.name,
         });
-        data['columns']['col-1'].citiesIds.push(store.city.id);
+        data['columns']['cities'].ids.push(store.city.id);
       }
 
-        data["brand"].push({
+        data["brands"].push({
           id: store.id,
           city: store.city.id,
-          brand: store.brand.name
+          content: store.brand.name
         });
-        data['columns']['col-2'].brandsIds.push(store.id);
+        data['columns']['brands'].ids.push(store.id);
 
         data["count"].push({
           id: store.id,
           city: store.city.id,
-          brand: store.employee_count
+          content: store.employee_count
         });
-        data['columns']['col-3'].countIds.push(store.id);
+        data['columns']['count'].ids.push(store.id);
     });
     // console.log(data);
     return data;
@@ -125,8 +79,9 @@ function App() {
 
   const onDragUpdate = update => {
     const { destination } = update;
+    // TODO: changer la condition "data['cities'] et l'élargir à toutes les cartes et types de données"
     const opacity = destination
-      ? destination.index / Object.keys(state.tasks).length
+      ? destination.index / Object.keys(data['cities']).length
       : 0;
     document.body.style.backgroundColor = `rgba( 153, 141, 217, ${opacity})`;
   };
@@ -151,8 +106,8 @@ function App() {
       return;
     }
 
-    const column = data.columns[source.droppableId];
-    const newTaskIds = Array.from(column.taskIds);
+    const column = data['columns'][source.droppableId];
+    const newTaskIds = Array.from(column.ids);
     newTaskIds.splice(source.index, 1);
     newTaskIds.splice(destination.index, 0, draggableId);
 
@@ -168,26 +123,27 @@ function App() {
         [newColumn.id]: newColumn,
       },
     };
-
+    setData(newState);
     // setState(newState);
   };
   console.log(data);
   console.log(data['columnOrder']);
-  console.log(isUpdated);
   // console.log(typeof(data['columnOrder']));
   return (
+    <div className="d-flex">
     <DragDropContext
       onDragStart={onDragStart}
       onDragUpdate={onDragUpdate}
       onDragEnd={onDragEnd}
-    >
-      {/* {isUpdated ? (data['columnOrder'].map(columnId => {
+      >
+      {data['columnOrder'] && (data['columnOrder'].map(columnId => {
         const column = data['columns'][columnId];
         console.log(data['cities']);
-        const tasks = data['cities'];
-        return <Column key={column.id} column={column} tasks={tasks} />;
-      })) : <div></div>} */}
+        const cards = data[columnId];
+        return <Column key={column.id} column={column} cards={cards} />;
+      }))}
     </DragDropContext>
+      </div>
   );
 }
 

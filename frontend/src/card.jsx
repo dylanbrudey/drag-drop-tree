@@ -12,17 +12,18 @@ const Container = styled.div`
 
 export default class Card extends React.Component {
   render() {
+    console.log(this.props.card);
     return (
-      <Draggable draggableId={this.props.task.id} index={this.props.index}>
+      <Draggable draggableId={this.props.card.id.toString()} index={this.props.index}>
         {(provided, snapshot) => (
-          <Container
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            ref={provided.innerRef}
-            isDragging={snapshot.isDragging}
+          <div classname="text-center"
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          ref={provided.innerRef}
+          isDragging={snapshot.isDragging}
           >
-            {this.props.task.content}
-          </Container>
+            {this.props.card.content}
+          </div>
         )}
       </Draggable>
     );

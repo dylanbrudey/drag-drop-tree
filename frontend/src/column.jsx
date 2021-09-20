@@ -7,11 +7,12 @@ const Container = styled.div`
   margin: 8px;
   border: 1px solid lightgrey;
   border-radius: 2px;
+  display: flex;
 `;
 const Title = styled.h3`
   padding: 8px;
 `;
-const TaskList = styled.div`
+const CardList = styled.div`
   padding: 8px;
   transition: background-color 0.2s ease;
   background-color: ${(props) => (props.isDraggingOver ? 'skyblue' : 'white')};
@@ -22,23 +23,23 @@ export default class Column extends React.Component {
     const { column, cards } = this.props;
 
     return (
-      <Container>
+      <div className="">
         <Title>{column.title}</Title>
         <Droppable droppableId={column.id}>
           {(provided, snapshot) => (
-            <TaskList
+            <CardList
               ref={provided.innerRef}
               {...provided.droppableProps}
               isDraggingOver={snapshot.isDraggingOver}
             >
-              {cards.map((task, index) => (
-                <Card key={task.id} task={task} index={index} />
+              {cards && cards.map((card, index) => (
+                <Card key={card.id} card={card} index={index} />
               ))}
               {provided.placeholder}
-            </TaskList>
+            </CardList>
           )}
         </Droppable>
-      </Container>
+      </div>
     );
   }
 }
