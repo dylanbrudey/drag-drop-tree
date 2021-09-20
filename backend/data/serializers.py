@@ -8,13 +8,13 @@ from data.models import Store, Brand, City
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
-        fields = ['name']
+        fields = ['id', 'name']
 
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
-        fields = ['name']
+        fields = ['id', 'name']
 
 
 class StoreSerializer(serializers.ModelSerializer):
@@ -23,4 +23,4 @@ class StoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Store
-        fields = ['city', 'brand', 'employee_count']
+        fields = ['id', 'city', 'brand', 'employee_count']
