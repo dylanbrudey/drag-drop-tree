@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-// import '@atlaskit/css-reset';
+import { useEffect, useState } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import Column from './column';
 import axios from 'axios';
-import produce, {} from "immer";
 
 
 function App() {
@@ -57,7 +55,7 @@ function App() {
       data["brands"]['brand_' + store.id] = {
           id: 'brand_' + store.id,
           storeId: store.id,
-          city: store.city.id,
+          cityId: 'city_' + store.city.id,
           content: store.brand.name,
       };
         data['columns']['brands'].ids.push('brand_' + store.id);
@@ -65,12 +63,11 @@ function App() {
         data["count"]['count_' + store.id] = {
             id: 'count_' + store.id,
             storeId: store.id,
-            city: store.city.id,
+            cityId: 'city_' + store.city.id,
             content: store.employee_count,
           };
         data['columns']['count'].ids.push('count_' + store.id);
     });
-    // console.log(data);
     return data;
   }
 
@@ -81,20 +78,31 @@ function App() {
 
   const onDragUpdate = update => {
     const { destination } = update;
-    // TODO: changer la condition "data['cities'] et l'élargir à toutes les cartes et types de données"
     const opacity = destination
       ? destination.index / Object.keys(data['cities']).length
       : 0;
     document.body.style.backgroundColor = `rgba( 153, 141, 217, ${opacity})`;
   };
-  //TODO: Fix this
-  const updateColumn = (newData, source, destination, columnId, currentDraggedId) => {
+
+  const updateColumn = (newData, sourceIndex, destinationIndex, columnId, itemsToMoveCount=1) => {
     const column = data['columns'][columnId];
-    console.log("column: ");
-    console.log(column);
     const newIds = Array.from(column.ids);
-    newIds.splice(source.index, 1);
-    newIds.splice(destination.index, 0, currentDraggedId);
+    const itemsToMove = newIds.splice(sourceIndex, itemsToMoveCount);
+    console.log('itemsTOMOVE:');
+    console.log(itemsToMove);
+    console.log('itemsTOMOVECOUNT:');
+    console.log(itemsToMoveCount);
+    console.log('sourceindex:');
+    console.log(sourceIndex);
+    console.log('destinationindex:');
+    console.log(destinationIndex);
+    if (itemsToMoveCount === 1)
+      newIds.splice(destinationIndex, 0, itemsToMove[0]);
+    else {
+      for (let i = 0; i < itemsToMove.length; i++) {
+        newIds.splice(destinationIndex + i, 0, itemsToMove[i]);
+      }
+    }
     const newColumn = {
       ...column,
       ids: newIds,
@@ -107,14 +115,43 @@ function App() {
       },
     };
     return newData;
-    // console.log("newData: ");
-    // console.log("data: ");
-    // console.log(data);
-    
-    // console.log("data: ");
-    // console.log(data);
-    //
   }
+
+  const updateStore = (newData, sourceIndex, destinationIndex, itemId) => {
+    let newSourceIndex = null;
+    let draggedCityCount = null;
+    const citiesId = newData['columns']['cities'].ids.slice(sourceIndex, destinationIndex);
+    const passedCityCount =  getContentCount(newData, citiesId);
+    const values = getContentByCity(newData, itemId);
+    newSourceIndex = values[0];
+    draggedCityCount = values[1];
+    const newDestinationIndex = newSourceIndex + passedCityCount;
+    newData = updateColumn(newData, newSourceIndex, newDestinationIndex , 'brands', draggedCityCount);
+    newData = updateColumn(newData, newSourceIndex, newDestinationIndex , 'count', draggedCityCount);
+    return newData;
+  }
+  const getContentByCity = (newData, cityId) => {
+    let lowestIndex = Object.keys(newData['count']).length - 1;
+    let draggedCityCount = 0;
+    Object.getOwnPropertyNames(newData['count']).map((content) => {
+      if (cityId === newData['count'][content].cityId) {
+        draggedCityCount++;
+        const indexInColumn = newData['columns']['count'].ids.indexOf(content);
+        lowestIndex = indexInColumn < lowestIndex ? indexInColumn : lowestIndex;
+      }
+    });
+    return [lowestIndex, draggedCityCount];
+  };
+  const getContentCount = (newData, cityIds) => {
+    let passedCityCount = 0;
+    Object.getOwnPropertyNames(newData['count']).map((content) => {
+      if (cityIds.includes(newData['count'][content].cityId)) {
+        passedCityCount++;
+      }
+    });
+    return passedCityCount;
+  }
+
   const onDragEnd = (result) => {
     document.body.style.color = 'inherit';
     document.body.style.backgroundColor = 'inherit';
@@ -136,71 +173,27 @@ function App() {
     }
     //Next fix : check here => "taskids and such"
     let column2_Id = null;
-    let draggable2_Id = null;
     let newData = {...data};
     switch (source.droppableId) {
       case 'brands':
         column2_Id = 'count';
-        draggable2_Id =  'count_' + draggableId[draggableId.length - 1];
-        newData = updateColumn(newData, source, destination, source.droppableId, draggableId)
-        newData = updateColumn(newData, source, destination, column2_Id, draggable2_Id)
         break;
       case 'count':
         column2_Id = 'brands';
-        draggable2_Id =  'brand_' + draggableId[draggableId.length - 1];
-        newData = updateColumn(newData, source, destination, source.droppableId, draggableId)
-        newData = updateColumn(newData, source, destination, column2_Id, draggable2_Id)
-        break;
-      case 'cities':
-        newData = updateColumn(newData, source, destination, source.droppableId, draggableId);
         break;
       default:
         break;
       }
-      setData({...newData});
-  //   const column = data['columns'][source.droppableId];
-  //   console.log("column: ");
-  //   console.log(column);
-  //   const newIds = Array.from(column.ids);
-  //   newIds.splice(source.index, 1);
-  //   newIds.splice(destination.index, 0, draggableId);
-  //   const newColumn = {
-  //     ...column,
-  //     ids: newIds,
-  //   };
-  //   const newData = {
-  //     ...data,
-  //     'columns': {
-  //       ...data['columns'],
-  //       [newColumn.id]: newColumn,
-  //     },
-  //   };
-  //   console.log("newData: ");
-  //   // console.log(newData);
-  //   console.log("data: ");
-  //   console.log(data);
-  //   // setData(prevData => {
-  //   //   return {...prevData,
-  //   //     'columns': {
-  //   //     ...prevData['columns'],
-  //   //     [newColumn.id]: newColumn,
-  //   //   }}
-  //   // });
 
-  //   // setData(prev => (
-  //   //   produce(prev, draft => {
-  //   //     draft['columns'][newColumn.id].ids = newIds;
-  //   //   }
-  //   //   )
-  //   // ));
-  //   setData({...newData});
-  //   console.log("data: ");
-  //   console.log(data);
-  //   // setState(newState);
+      newData = updateColumn(newData, source.index, destination.index, source.droppableId)
+      if (source.droppableId !== 'cities') {
+        newData = updateColumn(newData, source.index, destination.index, column2_Id)
+      }
+      else {
+        newData = updateStore(newData, source.index, destination.index, draggableId);
+      }
+      setData({...newData});
   };
-  // console.log(data);
-  // console.log(data['columnOrder']);
-  // console.log(typeof(data['columnOrder']));
   return (
     <div className="d-flex">
     <DragDropContext
@@ -210,7 +203,6 @@ function App() {
       >
       {data['columnOrder'] && (data['columnOrder'].map(columnId => {
         const column = data['columns'][columnId];
-        // console.log(data['cities']);
         const cards = data[columnId];
         return <Column key={column.id} column={column} cards={cards} />;
       }))}

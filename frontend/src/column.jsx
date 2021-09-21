@@ -21,13 +21,8 @@ const CardList = styled.div`
 export default class Column extends React.Component {
   render() {
     const { column, cards } = this.props;
-    console.log("cards");
-    console.log(cards);
-    console.log("column");
-    console.log(column);
     return (
-      <div className="">
-        <Title>{column.title}</Title>
+      <div className="m-3">
         <Droppable droppableId={column.id}>
           {(provided, snapshot) => (
             <CardList
