@@ -21,7 +21,10 @@ const CardList = styled.div`
 export default class Column extends React.Component {
   render() {
     const { column, cards } = this.props;
-
+    console.log("cards");
+    console.log(cards);
+    console.log("column");
+    console.log(column);
     return (
       <div className="">
         <Title>{column.title}</Title>
@@ -32,8 +35,8 @@ export default class Column extends React.Component {
               {...provided.droppableProps}
               isDraggingOver={snapshot.isDraggingOver}
             >
-              {cards && cards.map((card, index) => (
-                <Card key={card.id} card={card} index={index} />
+              {cards && column.ids.map((id, index) => (
+                <Card key={cards[id].id} card={cards[id]} index={index} />
               ))}
               {provided.placeholder}
             </CardList>

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import Column from './column';
 import axios from 'axios';
+import produce, {} from "immer";
 
 
 function App() {
@@ -10,19 +11,20 @@ function App() {
   const url = 'http://127.0.0.1:8000/stores';
 
   useEffect(() => {
-      axios.get(url)
-          .then(res => {
-            const newData = res.data;
-            console.log(newData);
-            setData(sortData(newData))
-          });
+    console.log("useEffect here");
+    axios.get(url)
+        .then(res => {
+          const newData = res.data;
+          // console.log(newData);
+          setData(sortData(newData))
+        });
   }, []);
 
   const sortData = (initialData) => {
     let data = {
-      cities: [],
-      brands: [],
-      count: [],
+      cities: {},
+      brands: {},
+      count: {},
       columns: {
         'cities': {
           id: 'cities',
@@ -44,33 +46,33 @@ function App() {
 
     };
     initialData.forEach(store => {
-      if (!data['cities'].some(city => city.id === store.city.id)) {
-        data["cities"].push({
-          id: store.city.id,
-          content: store.city.name,
-        });
-        data['columns']['cities'].ids.push(store.city.id);
+      if (!data['cities'].hasOwnProperty('city_' + store.city.id)) {
+        data["cities"]['city_' + store.city.id] = {
+            id: 'city_' + store.city.id,
+            content: store.city.name,
+          };
+        data['columns']['cities'].ids.push('city_' + store.city.id);
       }
 
-        data["brands"].push({
-          id: store.id,
+      data["brands"]['brand_' + store.id] = {
+          id: 'brand_' + store.id,
+          storeId: store.id,
           city: store.city.id,
-          content: store.brand.name
-        });
-        data['columns']['brands'].ids.push(store.id);
+          content: store.brand.name,
+      };
+        data['columns']['brands'].ids.push('brand_' + store.id);
 
-        data["count"].push({
-          id: store.id,
-          city: store.city.id,
-          content: store.employee_count
-        });
-        data['columns']['count'].ids.push(store.id);
+        data["count"]['count_' + store.id] = {
+            id: 'count_' + store.id,
+            storeId: store.id,
+            city: store.city.id,
+            content: store.employee_count,
+          };
+        data['columns']['count'].ids.push('count_' + store.id);
     });
     // console.log(data);
     return data;
   }
-  // state = initialData;
-  // const [state, setState] = useState(initialData);
 
   const onDragStart = () => {
     document.body.style.color = 'orange';
@@ -85,7 +87,33 @@ function App() {
       : 0;
     document.body.style.backgroundColor = `rgba( 153, 141, 217, ${opacity})`;
   };
-
+  //TODO: Fix this
+  const updateColumn = (source, destination, columnId, currentDraggedId) => {
+    const column = data['columns'][columnId];
+    console.log("column: ");
+    console.log(column);
+    const newIds = Array.from(column.ids);
+    newIds.splice(source.index, 1);
+    newIds.splice(destination.index, 0, currentDraggedId);
+    const newColumn = {
+      ...column,
+      ids: newIds,
+    };
+    const newData = {
+      ...data,
+      'columns': {
+        ...data['columns'],
+        [newColumn.id]: newColumn,
+      },
+    };
+    console.log("newData: ");
+    console.log("data: ");
+    console.log(data);
+    setData({...newData});
+    console.log("data: ");
+    console.log(data);
+    //
+  }
   const onDragEnd = (result) => {
     document.body.style.color = 'inherit';
     document.body.style.backgroundColor = 'inherit';
@@ -105,29 +133,67 @@ function App() {
     if (destination.index < source.index) {
       return;
     }
+    //Next fix : check here => "taskids and such"
+    let column2_Id = null;
+    let draggable2_Id = null;
+    switch (source.droppableId) {
+      case 'brands':
+        column2_Id = 'brands';
+        draggable2_Id =  'brand_' + draggableId[draggableId.length - 1];
+        updateColumn(source, destination, source.droppableId, draggableId)
+        updateColumn(source, destination, column2_Id, draggable2_Id)
+        break;
+      case 'count':
+        column2_Id = 'count';
+        draggable2_Id =  'count_' + draggableId[draggableId.length - 1];
+        updateColumn(source, destination, source.droppableId, draggableId)
+        updateColumn(source, destination, column2_Id, draggable2_Id)
+        break;
+      default:
+        break;
+    }
+  //   const column = data['columns'][source.droppableId];
+  //   console.log("column: ");
+  //   console.log(column);
+  //   const newIds = Array.from(column.ids);
+  //   newIds.splice(source.index, 1);
+  //   newIds.splice(destination.index, 0, draggableId);
+  //   const newColumn = {
+  //     ...column,
+  //     ids: newIds,
+  //   };
+  //   const newData = {
+  //     ...data,
+  //     'columns': {
+  //       ...data['columns'],
+  //       [newColumn.id]: newColumn,
+  //     },
+  //   };
+  //   console.log("newData: ");
+  //   // console.log(newData);
+  //   console.log("data: ");
+  //   console.log(data);
+  //   // setData(prevData => {
+  //   //   return {...prevData,
+  //   //     'columns': {
+  //   //     ...prevData['columns'],
+  //   //     [newColumn.id]: newColumn,
+  //   //   }}
+  //   // });
 
-    const column = data['columns'][source.droppableId];
-    const newTaskIds = Array.from(column.ids);
-    newTaskIds.splice(source.index, 1);
-    newTaskIds.splice(destination.index, 0, draggableId);
-
-    const newColumn = {
-      ...column,
-      taskIds: newTaskIds,
-    };
-
-    const newState = {
-      ...data,
-      columns: {
-        ...data.columns,
-        [newColumn.id]: newColumn,
-      },
-    };
-    setData(newState);
-    // setState(newState);
+  //   // setData(prev => (
+  //   //   produce(prev, draft => {
+  //   //     draft['columns'][newColumn.id].ids = newIds;
+  //   //   }
+  //   //   )
+  //   // ));
+  //   setData({...newData});
+  //   console.log("data: ");
+  //   console.log(data);
+  //   // setState(newState);
   };
-  console.log(data);
-  console.log(data['columnOrder']);
+  // console.log(data);
+  // console.log(data['columnOrder']);
   // console.log(typeof(data['columnOrder']));
   return (
     <div className="d-flex">
@@ -138,7 +204,7 @@ function App() {
       >
       {data['columnOrder'] && (data['columnOrder'].map(columnId => {
         const column = data['columns'][columnId];
-        console.log(data['cities']);
+        // console.log(data['cities']);
         const cards = data[columnId];
         return <Column key={column.id} column={column} cards={cards} />;
       }))}

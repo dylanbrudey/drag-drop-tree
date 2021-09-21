@@ -12,15 +12,15 @@ const Container = styled.div`
 
 export default class Card extends React.Component {
   render() {
-    console.log(this.props.card);
+    // console.log(this.props.card);
     return (
       <Draggable draggableId={this.props.card.id.toString()} index={this.props.index}>
         {(provided, snapshot) => (
-          <div classname="text-center"
+          <div className="text-center"
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           ref={provided.innerRef}
-          isDragging={snapshot.isDragging}
+          isdragging={snapshot.isDragging.toString()}
           >
             {this.props.card.content}
           </div>
