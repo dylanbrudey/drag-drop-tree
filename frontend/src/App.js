@@ -88,7 +88,7 @@ function App() {
     document.body.style.backgroundColor = `rgba( 153, 141, 217, ${opacity})`;
   };
   //TODO: Fix this
-  const updateColumn = (source, destination, columnId, currentDraggedId) => {
+  const updateColumn = (newData, source, destination, columnId, currentDraggedId) => {
     const column = data['columns'][columnId];
     console.log("column: ");
     console.log(column);
@@ -99,19 +99,20 @@ function App() {
       ...column,
       ids: newIds,
     };
-    const newData = {
-      ...data,
+    newData = {
+      ...newData,
       'columns': {
-        ...data['columns'],
+        ...newData['columns'],
         [newColumn.id]: newColumn,
       },
     };
-    console.log("newData: ");
-    console.log("data: ");
-    console.log(data);
-    setData({...newData});
-    console.log("data: ");
-    console.log(data);
+    return newData;
+    // console.log("newData: ");
+    // console.log("data: ");
+    // console.log(data);
+    
+    // console.log("data: ");
+    // console.log(data);
     //
   }
   const onDragEnd = (result) => {
@@ -136,22 +137,27 @@ function App() {
     //Next fix : check here => "taskids and such"
     let column2_Id = null;
     let draggable2_Id = null;
+    let newData = {...data};
     switch (source.droppableId) {
       case 'brands':
-        column2_Id = 'brands';
-        draggable2_Id =  'brand_' + draggableId[draggableId.length - 1];
-        updateColumn(source, destination, source.droppableId, draggableId)
-        updateColumn(source, destination, column2_Id, draggable2_Id)
-        break;
-      case 'count':
         column2_Id = 'count';
         draggable2_Id =  'count_' + draggableId[draggableId.length - 1];
-        updateColumn(source, destination, source.droppableId, draggableId)
-        updateColumn(source, destination, column2_Id, draggable2_Id)
+        newData = updateColumn(newData, source, destination, source.droppableId, draggableId)
+        newData = updateColumn(newData, source, destination, column2_Id, draggable2_Id)
+        break;
+      case 'count':
+        column2_Id = 'brands';
+        draggable2_Id =  'brand_' + draggableId[draggableId.length - 1];
+        newData = updateColumn(newData, source, destination, source.droppableId, draggableId)
+        newData = updateColumn(newData, source, destination, column2_Id, draggable2_Id)
+        break;
+      case 'cities':
+        newData = updateColumn(newData, source, destination, source.droppableId, draggableId);
         break;
       default:
         break;
-    }
+      }
+      setData({...newData});
   //   const column = data['columns'][source.droppableId];
   //   console.log("column: ");
   //   console.log(column);
