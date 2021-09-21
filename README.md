@@ -43,30 +43,30 @@ yarn start
 
 ###### Windows
 ```
-python -m venv ./api/venv
+python -m venv ./backend/venv
 ```
 ###### Unix
 ```
-python3 -m venv ./api/venv
+python3 -m venv ./backend/venv
 ```
 ##### Lancement de l'environnement virtuel
 
 ###### Windows
 ```
-.\api\venv\Scripts\activate
+.\backend\venv\Scripts\activate
 ```
 ###### Unix
 ```
-source api/venv/bin/activate
+source backend/venv/bin/activate
 ```
 ##### Installation des dépendances
 ###### Windows
 ```
-pip install .\api\requirements.txt
+pip install .\backend\requirements.txt
 ```
 ###### Unix
 ```
-pip3 install ./api/requirements.txt
+pip3 install ./backend/requirements.txt
 ```
 
 #### Lancement de l'api
